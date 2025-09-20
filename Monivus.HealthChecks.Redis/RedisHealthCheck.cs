@@ -46,10 +46,9 @@ namespace Monivus.HealthChecks.Redis
                     ["PingTime"] = pingResponse.TotalMilliseconds,
                     ["DatabaseSize"] = await server.DatabaseSizeAsync(),
                     ["LastSave"] = (await server.LastSaveAsync()).ToString("u"),
-                    ["ServerVersion"] = server.Version,
+                    ["ServerVersion"] = server.Version.ToString(),
                     ["ServerType"] = server.ServerType.ToString(),
                     ["IsConnected"] = server.IsConnected,
-                    ["CheckTimestamp"] = DateTime.UtcNow.ToString("u")
                 };
 
                 // Check if server is responding within reasonable time (optional basic check)

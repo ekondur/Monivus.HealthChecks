@@ -30,12 +30,12 @@ namespace Monivus.HealthChecks.SqlServer
                     return HealthCheckResult.Healthy(null,
                     new Dictionary<string, object>
                     {
-                        { "server", connection.DataSource },
-                        { "database", connection.Database },
-                        { "connection_timeout", connection.ConnectionTimeout },
-                        { "state", connection.State },
-                        { "server_version", connection.ServerVersion },
-                        { "workstation_id", connection.WorkstationId }
+                        { "DataSource", connection.DataSource },
+                        { "Database", connection.Database },
+                        { "ConnectionTimeout", connection.ConnectionTimeout },
+                        { "State", connection.State },
+                        { "ServerVersion", connection.ServerVersion },
+                        { "WorkstationId", connection.WorkstationId }
                         });
                 }
                 else

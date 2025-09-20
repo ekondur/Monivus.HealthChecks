@@ -1,10 +1,7 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
-using Microsoft.Extensions.Hosting;
-using System.Reflection;
 using System.Text.Json;
 
 namespace Monivus.HealthChecks
@@ -27,22 +24,15 @@ namespace Monivus.HealthChecks
 
         private static Task WriteMonivusHealthResponse(HttpContext context, HealthReport report)
         {
-            var response = new MonivusHealthResponse
+            var response = new HealthCheckReport
             {
                 Status = report.Status.ToString(),
                 Timestamp = DateTime.UtcNow,
                 Duration = report.TotalDuration,
-                Application = new MonivusApplicationInfo
-                {
-                    Name = Assembly.GetEntryAssembly()?.GetName().Name,
-                    Version = Assembly.GetEntryAssembly()?.GetName().Version?.ToString(),
-                    Environment = context.RequestServices.GetService<IHostEnvironment>()?.EnvironmentName,
-                    MachineName = Environment.MachineName
-                },
                 TraceId = context.TraceIdentifier,
-                Checks = report.Entries.ToDictionary(
+                Entries = report.Entries.ToDictionary(
                     e => e.Key,
-                    e => new MonivusHealthCheckDetail
+                    e => new HealthCheckEntry
                     {
                         Status = e.Value.Status.ToString(),
                         Description = e.Value.Description,
