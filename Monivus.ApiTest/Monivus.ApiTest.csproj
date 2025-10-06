@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -22,7 +22,8 @@
   <ItemGroup>
     <ProjectReference Include="..\Monivus.HealthChecks.Hangfire\Monivus.HealthChecks.Hangfire.csproj" />
     <ProjectReference Include="..\Monivus.HealthChecks.Redis\Monivus.HealthChecks.Redis.csproj" />
-    <ProjectReference Include="..\Monivus.HealthChecks.SqlServer\Monivus.HealthChecks.SqlServer.csproj" />
+    <ProjectReference Include="..\\Monivus.HealthChecks.SqlServer\\Monivus.HealthChecks.SqlServer.csproj" />
+    <ProjectReference Include="..\\Monivus.HealthChecks.Exporter\\Monivus.HealthChecks.Exporter.csproj" />
     <ProjectReference Include="..\Monivus.HealthChecks\Monivus.HealthChecks.csproj" />
   </ItemGroup>
 

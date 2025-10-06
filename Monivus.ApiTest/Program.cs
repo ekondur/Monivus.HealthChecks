@@ -2,6 +2,7 @@ using Hangfire;
 using Microsoft.EntityFrameworkCore;
 using Monivus.ApiTest;
 using Monivus.HealthChecks;
+using Monivus.HealthChecks.Exporter;
 using Monivus.HealthChecks.Hangfire;
 using Monivus.HealthChecks.Redis;
 using Monivus.HealthChecks.SqlServer;
@@ -53,9 +54,12 @@ internal class Program
             .AddHangfire()
             .AddRedis();
 
+        builder.Services.AddMonivusExporter(builder.Configuration);
+
         var app = builder.Build();
 
         app.UseMonivusHealthChecks();
+        app.UseMonivusExporter();
 
         // Configure the HTTP request pipeline.
         if (app.Environment.IsDevelopment())
