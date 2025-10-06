@@ -24,25 +24,79 @@ namespace Monivus.HealthChecks
 
         private static Task WriteMonivusHealthResponse(HttpContext context, HealthReport report)
         {
+            var entryResults = new Dictionary<string, HealthCheckEntry>(report.Entries.Count, System.StringComparer.OrdinalIgnoreCase);
+            var totalEntryDurationMs = 0d;
+            var maxEntryDurationMs = 0d;
+            var healthyCount = 0;
+            var degradedCount = 0;
+            var unhealthyCount = 0;
+            var unknownCount = 0;
+
+            foreach (var entry in report.Entries)
+            {
+                var source = entry.Value;
+                var responseEntry = new HealthCheckEntry
+                {
+                    Status = source.Status.ToString(),
+                    Description = source.Description,
+                    Duration = source.Duration,
+                    Data = source.Data?.ToDictionary(
+                        d => d.Key,
+                        d => d.Value is Exception ex ? ex.Message : d.Value),
+                    Exception = source.Exception?.GetType().FullName,
+                    Tags = source.Tags
+                };
+
+                entryResults[entry.Key] = responseEntry;
+
+                var durationMs = responseEntry.Duration.TotalMilliseconds;
+                totalEntryDurationMs += durationMs;
+                if (durationMs > maxEntryDurationMs)
+                {
+                    maxEntryDurationMs = durationMs;
+                }
+
+                switch (source.Status)
+                {
+                    case HealthStatus.Healthy:
+                        healthyCount++;
+                        break;
+                    case HealthStatus.Degraded:
+                        degradedCount++;
+                        break;
+                    case HealthStatus.Unhealthy:
+                        unhealthyCount++;
+                        break;
+                    default:
+                        unknownCount++;
+                        break;
+                }
+            }
+
+            var summary = new HealthCheckSummary
+            {
+                TotalChecks = entryResults.Count,
+                Healthy = healthyCount,
+                Degraded = degradedCount,
+                Unhealthy = unhealthyCount,
+                Unknown = unknownCount,
+                TotalDurationMilliseconds = System.Math.Round(report.TotalDuration.TotalMilliseconds, 2),
+                AverageDurationMilliseconds = entryResults.Count > 0
+                    ? System.Math.Round(totalEntryDurationMs / entryResults.Count, 2)
+                    : 0d,
+                MaxDurationMilliseconds = entryResults.Count > 0
+                    ? System.Math.Round(maxEntryDurationMs, 2)
+                    : 0d
+            };
+
             var response = new HealthCheckReport
             {
                 Status = report.Status.ToString(),
                 Timestamp = DateTime.UtcNow,
                 Duration = report.TotalDuration,
                 TraceId = context.TraceIdentifier,
-                Entries = report.Entries.ToDictionary(
-                    e => e.Key,
-                    e => new HealthCheckEntry
-                    {
-                        Status = e.Value.Status.ToString(),
-                        Description = e.Value.Description,
-                        Duration = e.Value.Duration,
-                        Data = e.Value.Data?.ToDictionary(
-                            d => d.Key,
-                            d => d.Value is Exception ex ? ex.Message : d.Value),
-                        Exception = e.Value.Exception?.GetType().FullName,
-                        Tags = e.Value.Tags
-                    })
+                Entries = entryResults,
+                Summary = summary
             };
 
             context.Response.ContentType = "application/json";

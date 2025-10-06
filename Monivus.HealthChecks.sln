@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Monivus.HealthChecks.Redis"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Monivus.HealthChecks.Exporter", "Monivus.HealthChecks.Exporter\Monivus.HealthChecks.Exporter.csproj", "{34EDE71A-B476-46A3-9866-89D8AC8CB2B2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Monivus.HealthChecks.ResourceUtilization", "Monivus.HealthChecks.ResourceUtilization\Monivus.HealthChecks.ResourceUtilization.csproj", "{34721FF6-8A1F-4A4A-9EC2-77748CD72462}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -97,6 +99,18 @@ Global
 		{34EDE71A-B476-46A3-9866-89D8AC8CB2B2}.Release|x64.Build.0 = Release|Any CPU
 		{34EDE71A-B476-46A3-9866-89D8AC8CB2B2}.Release|x86.ActiveCfg = Release|Any CPU
 		{34EDE71A-B476-46A3-9866-89D8AC8CB2B2}.Release|x86.Build.0 = Release|Any CPU
+		{34721FF6-8A1F-4A4A-9EC2-77748CD72462}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{34721FF6-8A1F-4A4A-9EC2-77748CD72462}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{34721FF6-8A1F-4A4A-9EC2-77748CD72462}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{34721FF6-8A1F-4A4A-9EC2-77748CD72462}.Debug|x64.Build.0 = Debug|Any CPU
+		{34721FF6-8A1F-4A4A-9EC2-77748CD72462}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{34721FF6-8A1F-4A4A-9EC2-77748CD72462}.Debug|x86.Build.0 = Debug|Any CPU
+		{34721FF6-8A1F-4A4A-9EC2-77748CD72462}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{34721FF6-8A1F-4A4A-9EC2-77748CD72462}.Release|Any CPU.Build.0 = Release|Any CPU
+		{34721FF6-8A1F-4A4A-9EC2-77748CD72462}.Release|x64.ActiveCfg = Release|Any CPU
+		{34721FF6-8A1F-4A4A-9EC2-77748CD72462}.Release|x64.Build.0 = Release|Any CPU
+		{34721FF6-8A1F-4A4A-9EC2-77748CD72462}.Release|x86.ActiveCfg = Release|Any CPU
+		{34721FF6-8A1F-4A4A-9EC2-77748CD72462}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

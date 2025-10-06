@@ -1,4 +1,8 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using Hangfire.Storage;
+using Hangfire.Storage.Monitoring;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace Monivus.HealthChecks.Hangfire
@@ -32,8 +36,10 @@ namespace Monivus.HealthChecks.Hangfire
                         data: new Dictionary<string, object> { ["FailedJobs"] = failedJobs }));
                 }
 
+                var now = DateTime.UtcNow;
+                var heartbeatWindow = TimeSpan.FromMinutes(5);
                 var activeServers = servers.Count(s => s.Heartbeat.HasValue &&
-                    (DateTime.UtcNow - s.Heartbeat.Value).TotalMinutes < 5);
+                    (now - s.Heartbeat.Value).TotalMinutes < heartbeatWindow.TotalMinutes);
 
                 if (activeServers == 0)
                 {
@@ -46,17 +52,38 @@ namespace Monivus.HealthChecks.Hangfire
                     return Task.FromResult(HealthCheckResult.Unhealthy("Hangfire storage connection failed"));
                 }
 
+                var queues = _monitoringApi.Queues() ?? new List<QueueWithTopEnqueuedJobsDto>();
+                var queueSummaries = queues.ToDictionary(
+                    q => q.Name,
+                    q => (object)new Dictionary<string, object>
+                    {
+                        ["Length"] = q.Length,
+                        ["Fetched"] = q.Fetched
+                    });
+
+                var lastHeartbeat = servers
+                    .Where(s => s.Heartbeat.HasValue)
+                    .Select(s => s.Heartbeat!.Value)
+                    .DefaultIfEmpty(DateTime.MinValue)
+                    .Max();
+
                 var healthData = new Dictionary<string, object>
                 {
                     ["ActiveServers"] = activeServers,
                     ["TotalServers"] = servers.Count,
+                    ["ServersWithoutRecentHeartbeat"] = servers.Count - activeServers,
+                    ["LastServerHeartbeatUtc"] = lastHeartbeat == DateTime.MinValue ? null : lastHeartbeat.ToString("o"),
                     ["SucceededJobs"] = stats.Succeeded,
                     ["FailedJobs"] = stats.Failed,
                     ["ProcessingJobs"] = stats.Processing,
                     ["ScheduledJobs"] = stats.Scheduled,
-                    ["EnqueuedJobs"] = _monitoringApi.EnqueuedCount("default"),
+                    ["TotalEnqueuedJobs"] = stats.Enqueued,
+                    ["DefaultQueueDepth"] = _monitoringApi.EnqueuedCount("default"),
                     ["DeletedJobs"] = stats.Deleted,
-                    ["Retries"] = stats.Retries ?? 0
+                    ["Retries"] = stats.Retries ?? 0,
+                    ["RecurringJobs"] = stats.Recurring,
+                    ["QueuesCount"] = queueSummaries.Count,
+                    ["Queues"] = queueSummaries
                 };
 
                 return Task.FromResult(HealthCheckResult.Healthy(

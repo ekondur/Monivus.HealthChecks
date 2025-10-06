@@ -55,8 +55,7 @@ internal class Program
         });
 
         builder.Services.AddHealthChecks()
-            .AddDbContextCheck<SampleDbContext>()
-            .AddResourceUtilizationHealthCheck()
+            .AddResourceUtilization()
             .AddSqlServer(defaultConnection)
             .AddHangfire()
             .AddRedis();

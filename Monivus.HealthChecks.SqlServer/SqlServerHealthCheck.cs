@@ -1,5 +1,10 @@
-﻿using Microsoft.Extensions.Diagnostics.HealthChecks;
+using System;
+using System.Collections.Generic;
 using System.Data.SqlClient;
+using System.Diagnostics;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace Monivus.HealthChecks.SqlServer
 {
@@ -19,47 +24,70 @@ namespace Monivus.HealthChecks.SqlServer
             try
             {
                 using var connection = new SqlConnection(_options.ConnectionString);
-                await connection.OpenAsync(cancellationToken);
+                var openWatch = Stopwatch.StartNew();
+                await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+                openWatch.Stop();
 
-                // Basit bir test query çalıştır
                 using var command = new SqlCommand(_options.TestQuery, connection);
-                var result = await command.ExecuteScalarAsync(cancellationToken);
+
+                if (_options.Timeout.HasValue)
+                {
+                    command.CommandTimeout = (int)_options.Timeout.Value.TotalSeconds;
+                }
+
+                var queryWatch = Stopwatch.StartNew();
+                var result = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+                queryWatch.Stop();
 
                 if (result != null && result != DBNull.Value)
                 {
-                    return HealthCheckResult.Healthy(null,
-                    new Dictionary<string, object>
+                    var data = new Dictionary<string, object>
                     {
                         { "DataSource", connection.DataSource },
                         { "Database", connection.Database },
                         { "ConnectionTimeout", connection.ConnectionTimeout },
                         { "State", connection.State },
                         { "ServerVersion", connection.ServerVersion },
-                        { "WorkstationId", connection.WorkstationId }
-                        });
+                        { "WorkstationId", connection.WorkstationId },
+                        { "ClientConnectionId", connection.ClientConnectionId.ToString() },
+                        { "CommandTimeoutSeconds", command.CommandTimeout },
+                        { "ConnectionOpenMilliseconds", System.Math.Round(openWatch.Elapsed.TotalMilliseconds, 2) },
+                        { "QueryDurationMilliseconds", System.Math.Round(queryWatch.Elapsed.TotalMilliseconds, 2) },
+                        { "TestQueryResult", result?.ToString() ?? string.Empty }
+                    };
+
+                    return HealthCheckResult.Healthy(null, data);
                 }
-                else
-                {
-                    return HealthCheckResult.Unhealthy(
-                        "SQL Server test sorgusu beklenen sonucu döndürmedi");
-                }
+
+                return HealthCheckResult.Unhealthy(
+                    "SQL Server test query returned an unexpected result.",
+                    null,
+                    new Dictionary<string, object>
+                    {
+                        { "ConnectionOpenMilliseconds", System.Math.Round(openWatch.Elapsed.TotalMilliseconds, 2) },
+                        { "QueryDurationMilliseconds", System.Math.Round(queryWatch.Elapsed.TotalMilliseconds, 2) },
+                        { "TestQueryResult", result?.ToString() ?? string.Empty }
+                    });
             }
             catch (SqlException ex)
             {
                 return HealthCheckResult.Unhealthy(
-                    "SQL Server bağlantı hatası",
+                    "SQL Server connection failure.",
                     ex,
                     new Dictionary<string, object>
                     {
-                    { "error_number", ex.Number },
-                    { "error_message", ex.Message },
-                    { "server", ex.Server }
+                        { "ErrorNumber", ex.Number },
+                        { "ErrorMessage", ex.Message },
+                        { "Server", ex.Server },
+                        { "Procedure", ex.Procedure ?? string.Empty },
+                        { "LineNumber", ex.LineNumber },
+                        { "ClientConnectionId", ex.ClientConnectionId.ToString() }
                     });
             }
             catch (Exception ex)
             {
                 return HealthCheckResult.Unhealthy(
-                    "SQL Server erişim hatası",
+                    "SQL Server access failure.",
                     ex);
             }
         }

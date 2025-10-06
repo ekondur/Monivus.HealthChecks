@@ -24,6 +24,7 @@
     <ProjectReference Include="..\Monivus.HealthChecks.Redis\Monivus.HealthChecks.Redis.csproj" />
     <ProjectReference Include="..\\Monivus.HealthChecks.SqlServer\\Monivus.HealthChecks.SqlServer.csproj" />
     <ProjectReference Include="..\\Monivus.HealthChecks.Exporter\\Monivus.HealthChecks.Exporter.csproj" />
+    <ProjectReference Include="..\Monivus.HealthChecks.ResourceUtilization\Monivus.HealthChecks.ResourceUtilization.csproj" />
     <ProjectReference Include="..\Monivus.HealthChecks\Monivus.HealthChecks.csproj" />
   </ItemGroup>
 
