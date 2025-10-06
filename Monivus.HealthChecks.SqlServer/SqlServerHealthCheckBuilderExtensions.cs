@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace Monivus.HealthChecks.SqlServer
@@ -9,9 +9,9 @@ namespace Monivus.HealthChecks.SqlServer
             this IHealthChecksBuilder builder,
             string connectionString,
             string testQuery = "SELECT 1",
-            string name = null,
+            string? name = null,
             HealthStatus? failureStatus = null,
-            IEnumerable<string> tags = null,
+            IEnumerable<string>? tags = null,
             TimeSpan? timeout = null)
         {
             if (builder == null)
@@ -38,9 +38,9 @@ namespace Monivus.HealthChecks.SqlServer
             this IHealthChecksBuilder builder,
             Func<IServiceProvider, string> connectionStringFactory,
             string testQuery = "SELECT 1",
-            string name = null,
+            string? name = null,
             HealthStatus? failureStatus = null,
-            IEnumerable<string> tags = null,
+            IEnumerable<string>? tags = null,
             TimeSpan? timeout = null)
         {
             if (builder == null)

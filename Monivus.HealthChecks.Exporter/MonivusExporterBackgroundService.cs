@@ -1,4 +1,5 @@
 using System.Net;
+using System.Diagnostics.CodeAnalysis;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
@@ -165,7 +166,7 @@ namespace Monivus.HealthChecks.Exporter
             }
         }
 
-        private static bool TryBuildHealthUri(MonivusExporterOptions options, out Uri uri, out string? error)
+        private static bool TryBuildHealthUri(MonivusExporterOptions options, [NotNullWhen(true)] out Uri? uri, out string? error)
         {
             if (Uri.TryCreate(options.HealthCheckEndpoint, UriKind.Absolute, out var absolute))
             {
@@ -176,21 +177,21 @@ namespace Monivus.HealthChecks.Exporter
 
             if (string.IsNullOrWhiteSpace(options.TargetApplicationUrl))
             {
-                uri = null!;
+                uri = null;
                 error = "TargetApplicationUrl must be provided when HealthCheckEndpoint is relative.";
                 return false;
             }
 
             if (!Uri.TryCreate(options.TargetApplicationUrl, UriKind.Absolute, out var baseUri))
             {
-                uri = null!;
+                uri = null;
                 error = "TargetApplicationUrl must be a valid absolute URI.";
                 return false;
             }
 
             if (!Uri.TryCreate(baseUri, options.HealthCheckEndpoint, out var combined))
             {
-                uri = null!;
+                uri = null;
                 error = "HealthCheckEndpoint could not be combined with TargetApplicationUrl.";
                 return false;
             }
@@ -200,18 +201,18 @@ namespace Monivus.HealthChecks.Exporter
             return true;
         }
 
-        private static bool TryBuildCentralUri(MonivusExporterOptions options, out Uri uri, out string? error)
+        private static bool TryBuildCentralUri(MonivusExporterOptions options, [NotNullWhen(true)] out Uri? uri, out string? error)
         {
             if (string.IsNullOrWhiteSpace(options.CentralAppEndpoint))
             {
-                uri = null!;
+                uri = null;
                 error = "CentralAppEndpoint configuration is required.";
                 return false;
             }
 
             if (!Uri.TryCreate(options.CentralAppEndpoint, UriKind.Absolute, out var absolute))
             {
-                uri = null!;
+                uri = null;
                 error = "CentralAppEndpoint must be a valid absolute URI.";
                 return false;
             }

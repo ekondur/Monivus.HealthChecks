@@ -7,13 +7,20 @@ using Monivus.HealthChecks.Hangfire;
 using Monivus.HealthChecks.Redis;
 using Monivus.HealthChecks.SqlServer;
 using StackExchange.Redis;
-using System.Configuration;
 
 internal class Program
 {
     private static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
+        var configuration = builder.Configuration;
+        var defaultConnection = configuration.GetConnectionString("DefaultConnection")
+            ?? throw new InvalidOperationException("Connection string 'DefaultConnection' is missing.");
+
+        var redisConnectionString = configuration["Redis:ConnectionString"]
+            ?? throw new InvalidOperationException("Redis:ConnectionString is missing.");
+        var redisInstanceName = configuration["Redis:InstanceName"];
+
 
         // Add services to the container.
 
@@ -23,38 +30,38 @@ internal class Program
         builder.Services.AddSwaggerGen();
 
         builder.Services.AddDbContext<SampleDbContext>(options =>
-            options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+            options.UseSqlServer(defaultConnection));
 
         builder.Services.AddHangfire(configuration => configuration
         .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
         .UseSimpleAssemblyNameTypeSerializer()
         .UseRecommendedSerializerSettings()
-        .UseSqlServerStorage(builder.Configuration.GetConnectionString("DefaultConnection")));
+        .UseSqlServerStorage(defaultConnection));
 
         builder.Services.AddHangfireServer();
 
         // Register Redis distributed cache
         builder.Services.AddStackExchangeRedisCache(options =>
         {
-            options.Configuration = builder.Configuration["Redis"];
-            options.InstanceName = builder.Configuration["Redis:InstanceName"];
+            options.Configuration = redisConnectionString;
+            options.InstanceName = redisInstanceName;
         });
 
         // Register Redis connection
         builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
         {
-            var configuration = ConfigurationOptions.Parse(builder.Configuration["Redis:ConnectionString"], true);
+            var configuration = ConfigurationOptions.Parse(redisConnectionString, true);
             return ConnectionMultiplexer.Connect(configuration);
         });
 
         builder.Services.AddHealthChecks()
             .AddDbContextCheck<SampleDbContext>()
             .AddResourceUtilizationHealthCheck()
-            .AddSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
+            .AddSqlServer(defaultConnection)
             .AddHangfire()
             .AddRedis();
 
-        builder.Services.AddMonivusExporter(builder.Configuration);
+        builder.Services.AddMonivusExporter(configuration);
 
         var app = builder.Build();
 
