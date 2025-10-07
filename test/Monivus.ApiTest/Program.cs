@@ -47,6 +47,10 @@ internal class Program
             options.InstanceName = redisInstanceName;
         });
 
+        // Bind Redis health check options from configuration
+        builder.Services.AddOptions<RedisHealthCheckOptions>()
+            .Bind(configuration.GetSection("Redis"));
+
         // Register Redis connection
         builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
         {

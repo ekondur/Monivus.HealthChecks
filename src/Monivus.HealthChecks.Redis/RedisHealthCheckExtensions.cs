@@ -1,5 +1,6 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Options;
 using StackExchange.Redis;
 
 namespace Monivus.HealthChecks.Redis
@@ -30,7 +31,9 @@ namespace Monivus.HealthChecks.Redis
                 serviceProvider =>
                 {
                     var redisConnection = serviceProvider.GetRequiredService<IConnectionMultiplexer>();
-                    return new RedisHealthCheck(redisConnection);
+                    var redisOpts = serviceProvider.GetService<IOptions<RedisHealthCheckOptions>>();
+                    var threshold = redisOpts?.Value?.SlowPingThresholdMilliseconds ?? 1000;
+                    return new RedisHealthCheck(redisConnection, threshold);
                 },
                 failureStatus,
                 tags,
@@ -65,10 +68,12 @@ namespace Monivus.HealthChecks.Redis
             // Register the health check with its own connection
             var registration = new HealthCheckRegistration(
                 name,
-                _ =>
+                sp =>
                 {
                     var redisConnection = ConnectionMultiplexer.Connect(connectionString);
-                    return new RedisHealthCheck(redisConnection);
+                    var redisOpts = sp.GetService<IOptions<RedisHealthCheckOptions>>();
+                    var threshold = redisOpts?.Value?.SlowPingThresholdMilliseconds ?? 1000;
+                    return new RedisHealthCheck(redisConnection, threshold);
                 },
                 failureStatus,
                 tags,

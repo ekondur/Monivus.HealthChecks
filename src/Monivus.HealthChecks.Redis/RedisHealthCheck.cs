@@ -6,12 +6,13 @@ namespace Monivus.HealthChecks.Redis
 {
     public class RedisHealthCheck : IHealthCheck
     {
-        private const double SlowPingThresholdMilliseconds = 1000;
         private readonly IConnectionMultiplexer _redisConnection;
+        private readonly double _slowPingThresholdMilliseconds;
 
-        public RedisHealthCheck(IConnectionMultiplexer redisConnection)
+        public RedisHealthCheck(IConnectionMultiplexer redisConnection, double slowPingThresholdMilliseconds = 1000)
         {
             _redisConnection = redisConnection ?? throw new ArgumentNullException(nameof(redisConnection));
+            _slowPingThresholdMilliseconds = slowPingThresholdMilliseconds;
         }
 
         public async Task<HealthCheckResult> CheckHealthAsync(
@@ -52,7 +53,7 @@ namespace Monivus.HealthChecks.Redis
 
                 var healthData = BuildHealthData(server, infoValues, pingResponse.TotalMilliseconds, databaseSize, lastSave);
 
-                if (pingResponse.TotalMilliseconds > SlowPingThresholdMilliseconds)
+                if (pingResponse.TotalMilliseconds > _slowPingThresholdMilliseconds)
                 {
                     return HealthCheckResult.Degraded(
                         $"Redis ping exceeded threshold ({pingResponse.TotalMilliseconds}ms).",
