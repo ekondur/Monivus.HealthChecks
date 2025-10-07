@@ -69,7 +69,7 @@ internal class Program
         var app = builder.Build();
 
         app.UseMonivusHealthChecks();
-        app.UseMonivusExporter();
+        //app.UseMonivusExporter();
 
         // Configure the HTTP request pipeline.
         if (app.Environment.IsDevelopment())
