@@ -1,5 +1,3 @@
-using System;
-
 namespace Monivus.HealthChecks.Exporter
 {
     public class MonivusExporterOptions
