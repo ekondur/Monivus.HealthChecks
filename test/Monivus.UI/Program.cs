@@ -1,6 +1,7 @@
 using Monivus.UI.Components;
 using Monivus.HealthChecks;
 using Monivus.HealthChecks.Exporter;
+using Monivus.HealthChecks.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
@@ -11,8 +12,19 @@ builder.AddServiceDefaults();
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
+builder.AddRedisDistributedCache(connectionName: "cache",
+    settings => 
+    { 
+        settings.DisableHealthChecks = true;
+    },
+    options =>
+    {
+        options.AllowAdmin = true;
+    });
+
 builder.Services.AddHealthChecks()
-    .AddResourceUtilization();
+    .AddResourceUtilization()
+    .AddRedis();
 
 builder.Services.AddMonivusExporter(configuration);
 
