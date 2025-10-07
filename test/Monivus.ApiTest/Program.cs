@@ -55,10 +55,10 @@ internal class Program
         });
 
         builder.Services.AddHealthChecks()
-            .AddResourceUtilization()
-            .AddSqlServer(defaultConnection)
+            .AddResourceUtilization(name: "Resource Utilization")
+            .AddSqlServer(defaultConnection, name: "Sql Server 1")
             .AddHangfire()
-            .AddRedis();
+            .AddRedis(name: "Redis Cluster");
 
         builder.Services.AddMonivusExporter(configuration);
 

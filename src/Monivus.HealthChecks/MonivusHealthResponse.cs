@@ -5,7 +5,6 @@
         public string Status { get; set; } = string.Empty;
         public DateTime Timestamp { get; set; }
         public TimeSpan Duration { get; set; }
-        public double TotalDurationMilliseconds => System.Math.Round(Duration.TotalMilliseconds, 2);
         public string TraceId { get; set; } = string.Empty;
         public Dictionary<string, HealthCheckEntry> Entries { get; set; } = [];
         public HealthCheckSummary Summary { get; set; } = new();
