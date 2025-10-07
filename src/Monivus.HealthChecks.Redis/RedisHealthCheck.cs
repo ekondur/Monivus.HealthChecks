@@ -113,7 +113,7 @@ namespace Monivus.HealthChecks.Redis
             if (usedMemoryBytes.HasValue)
             {
                 healthData["UsedMemoryBytes"] = usedMemoryBytes.Value;
-                healthData["UsedMemoryMegabytes"] = System.Math.Round(usedMemoryBytes.Value / 1024d / 1024d, 2);
+                healthData["UsedMemoryMegabytes"] = Math.Round(usedMemoryBytes.Value / 1024d / 1024d, 2);
             }
 
             if (usedMemoryRssBytes.HasValue)
@@ -126,9 +126,8 @@ namespace Monivus.HealthChecks.Redis
                 healthData["TotalSystemMemoryBytes"] = systemMemoryBytes.Value;
                 if (usedMemoryBytes.HasValue && systemMemoryBytes.Value > 0)
                 {
-                    healthData["MemoryUsagePercent"] = System.Math.Round(
-                        usedMemoryBytes.Value / (double)systemMemoryBytes.Value * 100,
-                        2);
+                    healthData["MemoryUsagePercent"] = Math.Round(
+                        usedMemoryBytes.Value / (double)systemMemoryBytes.Value * 100, 2);
                 }
             }
 
@@ -159,7 +158,7 @@ namespace Monivus.HealthChecks.Redis
 
             if (memFragmentation.HasValue)
             {
-                healthData["MemoryFragmentationRatio"] = System.Math.Round(memFragmentation.Value, 2);
+                healthData["MemoryFragmentationRatio"] = Math.Round(memFragmentation.Value, 2);
             }
 
             var totalKeyspaceOperations = (keyspaceHits ?? 0) + (keyspaceMisses ?? 0);
@@ -167,7 +166,7 @@ namespace Monivus.HealthChecks.Redis
             {
                 healthData["KeyspaceHits"] = keyspaceHits ?? 0;
                 healthData["KeyspaceMisses"] = keyspaceMisses ?? 0;
-                healthData["KeyspaceHitRatePercent"] = System.Math.Round(
+                healthData["KeyspaceHitRatePercent"] = Math.Round(
                     (keyspaceHits ?? 0) / (double)totalKeyspaceOperations * 100,
                     2);
             }

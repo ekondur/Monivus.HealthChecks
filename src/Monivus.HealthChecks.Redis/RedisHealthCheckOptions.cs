@@ -5,4 +5,3 @@ namespace Monivus.HealthChecks.Redis
         public double SlowPingThresholdMilliseconds { get; set; } = 1000;
     }
 }
-

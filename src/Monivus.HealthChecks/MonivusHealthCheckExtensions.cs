@@ -73,30 +73,13 @@ namespace Monivus.HealthChecks
                 }
             }
 
-            var summary = new HealthCheckSummary
-            {
-                TotalChecks = entryResults.Count,
-                Healthy = healthyCount,
-                Degraded = degradedCount,
-                Unhealthy = unhealthyCount,
-                Unknown = unknownCount,
-                TotalDurationMilliseconds = System.Math.Round(report.TotalDuration.TotalMilliseconds, 2),
-                AverageDurationMilliseconds = entryResults.Count > 0
-                    ? System.Math.Round(totalEntryDurationMs / entryResults.Count, 2)
-                    : 0d,
-                MaxDurationMilliseconds = entryResults.Count > 0
-                    ? System.Math.Round(maxEntryDurationMs, 2)
-                    : 0d
-            };
-
             var response = new HealthCheckReport
             {
                 Status = report.Status.ToString(),
                 Timestamp = DateTime.UtcNow,
                 Duration = report.TotalDuration,
                 TraceId = context.TraceIdentifier,
-                Entries = entryResults,
-                Summary = summary
+                Entries = entryResults
             };
 
             context.Response.ContentType = "application/json";
