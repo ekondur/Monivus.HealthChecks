@@ -5,7 +5,7 @@ namespace Monivus.HealthChecks
 {
     public static class ResourceUtilizationHealthCheckExtensions
     {
-        public static IHealthChecksBuilder AddResourceUtilization(
+        public static IHealthChecksBuilder AddResourceUtilizationEntry(
             this IHealthChecksBuilder builder,
             Action<ResourceUtilizationHealthCheckOptions>? configure = null,
             string name = "resource_utilization",
@@ -15,7 +15,7 @@ namespace Monivus.HealthChecks
         {
             ArgumentNullException.ThrowIfNull(builder);
 
-            return builder.AddResourceUtilization(
+            return builder.AddResourceUtilizationEntry(
                 _ =>
                 {
                     var options = new ResourceUtilizationHealthCheckOptions();
@@ -28,7 +28,7 @@ namespace Monivus.HealthChecks
                 timeout);
         }
 
-        public static IHealthChecksBuilder AddResourceUtilization(
+        public static IHealthChecksBuilder AddResourceUtilizationEntry(
             this IHealthChecksBuilder builder,
             Func<IServiceProvider, ResourceUtilizationHealthCheckOptions> optionsFactory,
             string name = "resource_utilization",

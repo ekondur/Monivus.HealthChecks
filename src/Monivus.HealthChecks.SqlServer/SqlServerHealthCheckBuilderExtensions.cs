@@ -6,7 +6,7 @@ namespace Monivus.HealthChecks.SqlServer
 {
     public static class SqlServerHealthCheckBuilderExtensions
     {
-        public static IHealthChecksBuilder AddSqlServer(
+        public static IHealthChecksBuilder AddSqlServerEntry(
             this IHealthChecksBuilder builder,
             string connectionStringOrName,
             string testQuery = "SELECT 1",
@@ -43,7 +43,7 @@ namespace Monivus.HealthChecks.SqlServer
                 timeout));
         }
 
-        public static IHealthChecksBuilder AddSqlServer(
+        public static IHealthChecksBuilder AddSqlServerEntry(
             this IHealthChecksBuilder builder,
             Func<IServiceProvider, string> connectionStringFactory,
             string testQuery = "SELECT 1",
@@ -102,7 +102,7 @@ namespace Monivus.HealthChecks.SqlServer
 
         private static bool LooksLikeConnectionString(string value)
         {
-            return value.Contains("=");
+            return value.Contains('=');
         }
     }
 }

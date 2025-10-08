@@ -14,7 +14,7 @@ namespace Monivus.HealthChecks.Hangfire
         /// <param name="failureStatus">The failure status (optional)</param>
         /// <param name="tags">Additional tags (optional)</param>
         /// <returns>The health checks builder</returns>
-        public static IHealthChecksBuilder AddHangfire(
+        public static IHealthChecksBuilder AddHangfireEntry(
             this IHealthChecksBuilder builder,
             string name = "hangfire",
             HealthStatus? failureStatus = null,

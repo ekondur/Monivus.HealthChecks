@@ -12,7 +12,7 @@ builder.AddServiceDefaults();
 builder.AddSqlServerDbContext<SampleDbContext>(connectionName: "sampleDb");
 
 builder.Services.AddHealthChecks()
-    .AddSqlServer("sampleDb");
+    .AddSqlServerEntry("sampleDb");
 
 var app = builder.Build();
 

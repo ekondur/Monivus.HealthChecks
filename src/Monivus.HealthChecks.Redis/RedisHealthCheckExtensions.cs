@@ -16,7 +16,7 @@ namespace Monivus.HealthChecks.Redis
         /// <param name="tags">A list of tags that can be used to filter health checks (optional)</param>
         /// <param name="timeout">The health check timeout (optional)</param>
         /// <returns>The health checks builder</returns>
-        public static IHealthChecksBuilder AddRedis(
+        public static IHealthChecksBuilder AddRedisEntry(
             this IHealthChecksBuilder builder,
             string name = "redis",
             HealthStatus? failureStatus = null,
@@ -52,7 +52,7 @@ namespace Monivus.HealthChecks.Redis
         /// <param name="tags">A list of tags that can be used to filter health checks (optional)</param>
         /// <param name="timeout">The health check timeout (optional)</param>
         /// <returns>The health checks builder</returns>
-        public static IHealthChecksBuilder AddRedis(
+        public static IHealthChecksBuilder AddRedisEntry(
             this IHealthChecksBuilder builder,
             string connectionString,
             string name = "redis",

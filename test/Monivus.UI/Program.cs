@@ -23,8 +23,8 @@ builder.AddRedisDistributedCache(connectionName: "cache",
     });
 
 builder.Services.AddHealthChecks()
-    .AddResourceUtilization()
-    .AddRedis();
+    .AddResourceUtilizationEntry()
+    .AddRedisEntry();
 
 builder.Services.AddMonivusExporter(configuration);
 
