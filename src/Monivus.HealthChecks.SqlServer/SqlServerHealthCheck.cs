@@ -1,4 +1,4 @@
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using System.Diagnostics;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
@@ -89,3 +89,4 @@ namespace Monivus.HealthChecks.SqlServer
         }
     }
 }
+
