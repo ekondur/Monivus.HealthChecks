@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Configuration;
 
 namespace Monivus.HealthChecks.SqlServer
 {
@@ -7,7 +8,7 @@ namespace Monivus.HealthChecks.SqlServer
     {
         public static IHealthChecksBuilder AddSqlServer(
             this IHealthChecksBuilder builder,
-            string connectionString,
+            string connectionStringOrName,
             string testQuery = "SELECT 1",
             string? name = null,
             HealthStatus? failureStatus = null,
@@ -16,19 +17,27 @@ namespace Monivus.HealthChecks.SqlServer
         {
             if (builder == null)
                 throw new ArgumentNullException(nameof(builder));
-            if (string.IsNullOrEmpty(connectionString))
-                throw new ArgumentNullException(nameof(connectionString));
-
-            var options = new SqlServerHealthCheckOptions
-            {
-                ConnectionString = connectionString,
-                TestQuery = testQuery,
-                Timeout = timeout
-            };
+            if (string.IsNullOrEmpty(connectionStringOrName))
+                throw new ArgumentNullException(nameof(connectionStringOrName));
 
             return builder.Add(new HealthCheckRegistration(
                 name ?? "sqlserver",
-                sp => new SqlServerHealthCheck(options),
+                sp =>
+                {
+                    var resolved = ResolveConnectionString(sp, connectionStringOrName);
+                    var options = new SqlServerHealthCheckOptions
+                    {
+                        ConnectionString = resolved,
+                        TestQuery = testQuery
+                    };
+
+                    if (timeout.HasValue)
+                    {
+                        options.Timeout = timeout.Value;
+                    }
+
+                    return new SqlServerHealthCheck(options);
+                },
                 failureStatus,
                 tags,
                 timeout));
@@ -69,6 +78,31 @@ namespace Monivus.HealthChecks.SqlServer
                 failureStatus,
                 tags,
                 timeout));
+        }
+
+        private static string ResolveConnectionString(IServiceProvider sp, string connectionStringOrName)
+        {
+            var configuration = sp.GetService<IConfiguration>();
+            if (configuration != null)
+            {
+                var byName = configuration.GetConnectionString(connectionStringOrName);
+                if (!string.IsNullOrWhiteSpace(byName))
+                {
+                    return byName!;
+                }
+            }
+
+            if (LooksLikeConnectionString(connectionStringOrName))
+            {
+                return connectionStringOrName;
+            }
+
+            return connectionStringOrName;
+        }
+
+        private static bool LooksLikeConnectionString(string value)
+        {
+            return value.Contains("=");
         }
     }
 }
