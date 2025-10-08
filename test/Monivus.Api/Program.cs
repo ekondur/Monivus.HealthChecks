@@ -1,9 +1,18 @@
+using Monivus.Api;
+using Monivus.HealthChecks;
+using Monivus.HealthChecks.SqlServer;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 builder.AddServiceDefaults();
+
+builder.AddSqlServerDbContext<SampleDbContext>(connectionName: "sampleDb");
+
+builder.Services.AddHealthChecks()
+    .AddSqlServer("sampleDb");
 
 var app = builder.Build();
 
@@ -33,6 +42,8 @@ app.MapGet("/weatherforecast", () =>
     return forecast;
 })
 .WithName("GetWeatherForecast");
+
+app.UseMonivusHealthChecks();
 
 app.Run();
 

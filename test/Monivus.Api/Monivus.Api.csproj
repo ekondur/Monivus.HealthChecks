@@ -7,10 +7,17 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.8" />
+    <PackageReference Include="Aspire.Microsoft.EntityFrameworkCore.SqlServer" Version="9.5.1" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.9" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.9">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Monivus.HealthChecks.SqlServer\Monivus.HealthChecks.SqlServer.csproj" />
+    <ProjectReference Include="..\..\src\Monivus.HealthChecks\Monivus.HealthChecks.csproj" />
     <ProjectReference Include="..\Monivus.ServiceDefaults\Monivus.ServiceDefaults.csproj" />
   </ItemGroup>
 
