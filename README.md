@@ -70,3 +70,63 @@ Notes
 
 - The overload that takes a `Func<IServiceProvider, string>` remains available if you need dynamic resolution.
 - No changes are required to your code if you previously passed a full connection string; connection-name support is additive.
+
+## URL Health Check
+
+Examples
+
+`csharp
+// Basic GET expecting 2xx
+builder.Services.AddHealthChecks()
+    .AddUrlEntry("https://example.com/health");
+
+// Customizing method, expected status codes, and request timeout
+builder.Services.AddHealthChecks()
+    .AddUrlEntry(
+        url: "https://example.com/ping",
+        configure: o =>
+        {
+            o.Method = HttpMethod.Head;
+            o.ExpectedStatusCodes = new HashSet<int> { 200, 204 };
+            o.RequestTimeout = TimeSpan.FromSeconds(3);
+        },
+        name: "url:example");
+
+// Dynamic URL from DI/config
+builder.Services.AddHealthChecks()
+    .AddUrlEntry(
+        sp => sp.GetRequiredService<IConfiguration>["Endpoints:Ping"]!,
+        name: "url:dynamic");
+`
+
+Configuration (UrlHealthCheckOptions defaults)
+
+`json
+// appsettings.json (binds to UrlHealthCheckOptions)
+{
+  "UrlHealthCheck": {
+    // TimeSpan format (hh:mm:ss.fff)
+    "RequestTimeout": "00:00:02.000",
+    // If a response takes longer than this, report Degraded
+    "SlowResponseThreshold": "00:00:01.500",
+    // Override expected status codes (defaults to 2xx)
+    "ExpectedStatusCodes": [200, 204]
+  }
+}
+`
+
+`csharp
+// Program.cs
+builder.Services.ConfigureUrlHealthChecks(
+    builder.Configuration.GetSection("UrlHealthCheck"));
+
+builder.Services.AddHealthChecks()
+    .AddUrlEntry("https://example.com/health");
+`
+
+Notes
+
+- Defaults are bound to UrlHealthCheckOptions from configuration; not extension parameters.
+- Set RequestTimeout and SlowResponseThreshold from configuration; customize Method via the optional configure action.
+- If the HTTP call exceeds RequestTimeout, the check returns Unhealthy.
+- If the call completes but exceeds SlowResponseThreshold, the check returns Degraded.

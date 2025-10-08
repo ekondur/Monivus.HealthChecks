@@ -14,6 +14,7 @@
     <ProjectReference Include="..\..\src\Monivus.HealthChecks.Exporter\Monivus.HealthChecks.Exporter.csproj" />
     <ProjectReference Include="..\..\src\Monivus.HealthChecks.Redis\Monivus.HealthChecks.Redis.csproj" />
     <ProjectReference Include="..\..\src\Monivus.HealthChecks.ResourceUtilization\Monivus.HealthChecks.ResourceUtilization.csproj" />
+    <ProjectReference Include="..\..\src\Monivus.HealthChecks.Url\Monivus.HealthChecks.Url.csproj" />
     <ProjectReference Include="..\..\src\Monivus.HealthChecks\Monivus.HealthChecks.csproj" />
     <ProjectReference Include="..\Monivus.ServiceDefaults\Monivus.ServiceDefaults.csproj" />
   </ItemGroup>
