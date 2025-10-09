@@ -42,7 +42,14 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseMonivusHealthChecks();
+// Aggregate remote health endpoints into UI health output
+app.UseMonivusAggregatedHealthChecks(opts =>
+{
+    // Example: add API health endpoint
+    opts.AddEndpoint("api", "https://localhost:7048/health");
+    // You can add more:
+    // opts.AddEndpoint("jobs", "https://localhost:5002/health");
+});
 
 app.UseAntiforgery();
 
