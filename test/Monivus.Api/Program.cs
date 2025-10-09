@@ -1,5 +1,7 @@
+using Hangfire;
 using Monivus.Api;
 using Monivus.HealthChecks;
+using Monivus.HealthChecks.Hangfire;
 using Monivus.HealthChecks.SqlServer;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,8 +13,20 @@ builder.AddServiceDefaults();
 
 builder.AddSqlServerDbContext<SampleDbContext>(connectionName: "sampleDb");
 
+GlobalConfiguration.Configuration.UseInMemoryStorage();
+
+builder.Services.AddHangfire(config =>
+{
+    config.SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+        .UseSimpleAssemblyNameTypeSerializer()
+        .UseRecommendedSerializerSettings();
+});
+
+builder.Services.AddHangfireServer();
+
 builder.Services.AddHealthChecks()
-    .AddSqlServerEntry("sampleDb");
+    .AddSqlServerEntry("sampleDb")
+    .AddHangfireEntry();
 
 var app = builder.Build();
 
