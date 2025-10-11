@@ -24,7 +24,7 @@ namespace Monivus.HealthChecks
                 },
                 name,
                 failureStatus,
-                PrependTypeTag("Resource Utilization", tags),
+                PrependTypeTag("ResourceUtilization", tags),
                 timeout);
         }
 
@@ -43,7 +43,7 @@ namespace Monivus.HealthChecks
                 name,
                 sp => new ResourceUtilizationHealthCheck(optionsFactory(sp)),
                 failureStatus,
-                PrependTypeTag("Resource Utilization", tags),
+                PrependTypeTag("ResourceUtilization", tags),
                 timeout));
         }
 
