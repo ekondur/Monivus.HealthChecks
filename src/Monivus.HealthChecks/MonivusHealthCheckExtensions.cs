@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
-using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text.Json;
 
@@ -148,13 +147,13 @@ namespace Monivus.HealthChecks
                 {
                     var ep = options.RemoteEndpoints[idx];
                     var res = results[idx];
-                    var prefix = string.IsNullOrWhiteSpace(ep.Prefix) ? "remote" : ep.Prefix;
+                    var prefix = string.IsNullOrWhiteSpace(ep.Name) ? ep.Url : ep.Name;
 
                     if (res.Report?.Entries is not null)
                     {
                         foreach (var kvp in res.Report.Entries)
                         {
-                            var key = $"{prefix}:{kvp.Key}";
+                            var key = $"{prefix}|{kvp.Key}";
 
                             // Avoid collisions by suffixing if needed
                             var finalKey = key;
@@ -172,9 +171,7 @@ namespace Monivus.HealthChecks
                     {
                         var summaryData = new Dictionary<string, object>
                         {
-                            ["Endpoint"] = ep.Url,
                             ["StatusCode"] = res.StatusCode,
-                            ["DurationMs"] = Math.Round(res.Duration.TotalMilliseconds, 3)
                         };
 
                         var summaryStatus = "Unknown";
@@ -194,7 +191,6 @@ namespace Monivus.HealthChecks
                             summaryStatus = res.StatusCode is >= 200 and < 300 ? "Healthy" : "Unhealthy";
                         }
 
-                        // Prevent collision
                         var summaryKey = prefix;
                         var finalKey = summaryKey;
                         var i2 = 1;
@@ -210,13 +206,12 @@ namespace Monivus.HealthChecks
                             Duration = res.Duration,
                             Data = summaryData,
                             Exception = res.Error?.GetType().FullName,
-                            Tags = Array.Empty<string>()
+                            Tags = []
                         };
                     }
                 }
             }
 
-            // Compose final response using local status for top-level
             var response = new HealthCheckReport
             {
                 Status = localReport.Status.ToString(),

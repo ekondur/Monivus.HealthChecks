@@ -26,7 +26,7 @@ builder.AddRedisDistributedCache(connectionName: "cache",
 builder.Services.AddHealthChecks()
     .AddResourceUtilizationEntry()
     .AddRedisEntry()
-    .AddUrlEntry("https://example.com", "example.com");
+    .AddUrlEntry("https://www.google.com/");
 
 builder.Services.AddMonivusExporter(configuration);
 
@@ -46,7 +46,7 @@ app.UseHttpsRedirection();
 app.UseMonivusAggregatedHealthChecks(opts =>
 {
     // Example: add API health endpoint
-    opts.AddEndpoint("api", "https://localhost:7048/health");
+    opts.AddEndpoint("https://localhost:7048/health", "api");
     // You can add more:
     // opts.AddEndpoint("jobs", "https://localhost:5002/health");
 });
