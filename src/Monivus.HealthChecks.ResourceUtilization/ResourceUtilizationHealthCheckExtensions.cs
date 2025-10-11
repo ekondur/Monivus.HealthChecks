@@ -24,7 +24,7 @@ namespace Monivus.HealthChecks
                 },
                 name,
                 failureStatus,
-                tags,
+                PrependTypeTag("Resource Utilization", tags),
                 timeout);
         }
 
@@ -43,8 +43,15 @@ namespace Monivus.HealthChecks
                 name,
                 sp => new ResourceUtilizationHealthCheck(optionsFactory(sp)),
                 failureStatus,
-                tags,
+                PrependTypeTag("Resource Utilization", tags),
                 timeout));
+        }
+
+        private static IEnumerable<string> PrependTypeTag(string code, IEnumerable<string>? tags)
+        {
+            yield return code.ToString();
+            if (tags is null) yield break;
+            foreach (var t in tags) yield return t;
         }
     }
 }

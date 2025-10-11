@@ -36,7 +36,7 @@ namespace Monivus.HealthChecks.Redis
                     return new RedisHealthCheck(redisConnection, threshold);
                 },
                 failureStatus,
-                tags,
+                PrependTypeTag("Redis", tags),
                 timeout);
 
             return builder.Add(registration);
@@ -76,10 +76,16 @@ namespace Monivus.HealthChecks.Redis
                     return new RedisHealthCheck(redisConnection, threshold);
                 },
                 failureStatus,
-                tags,
+                PrependTypeTag("Redis", tags),
                 timeout);
 
             return builder.Add(registration);
+        }
+        private static IEnumerable<string> PrependTypeTag(string code, IEnumerable<string>? tags)
+        {
+            yield return code.ToString();
+            if (tags is null) yield break;
+            foreach (var t in tags) yield return t;
         }
     }
 }

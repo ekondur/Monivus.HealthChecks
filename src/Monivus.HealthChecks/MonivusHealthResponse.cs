@@ -19,5 +19,6 @@
         public Dictionary<string, object>? Data { get; set; }
         public string? Exception { get; set; }
         public IEnumerable<string> Tags { get; set; } = [];
+        public string EntryType { get; set; } = "Unknown";
     }
 }

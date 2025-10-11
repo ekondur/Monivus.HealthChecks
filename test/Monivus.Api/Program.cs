@@ -25,7 +25,7 @@ builder.Services.AddHangfire(config =>
 builder.Services.AddHangfireServer();
 
 builder.Services.AddHealthChecks()
-    .AddSqlServerEntry("sampleDb")
+    .AddSqlServerEntry("sampleDb", tags: ["Prod Server"])
     .AddHangfireEntry();
 
 var app = builder.Build();

@@ -43,7 +43,7 @@ namespace Monivus.HealthChecks.Url
                     return new UrlHealthCheck(url, options);
                 },
                 failureStatus,
-                tags,
+                PrependTypeTag("Url", tags),
                 timeout));
         }
 
@@ -82,7 +82,7 @@ namespace Monivus.HealthChecks.Url
                     return new UrlHealthCheck(urlValue, options);
                 },
                 failureStatus,
-                tags,
+                PrependTypeTag("Url", tags),
                 timeout));
         }
 
@@ -90,6 +90,13 @@ namespace Monivus.HealthChecks.Url
         {
             return Uri.TryCreate(url, UriKind.Absolute, out var parsed) &&
                    (parsed.Scheme == Uri.UriSchemeHttp || parsed.Scheme == Uri.UriSchemeHttps);
+        }
+
+        private static IEnumerable<string> PrependTypeTag(string code, IEnumerable<string>? tags)
+        {
+            yield return code.ToString();
+            if (tags is null) yield break;
+            foreach (var t in tags) yield return t;
         }
     }
 }

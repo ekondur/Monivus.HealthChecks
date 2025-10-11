@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using System.Net.Http.Headers;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Monivus.HealthChecks
 {
@@ -13,7 +14,8 @@ namespace Monivus.HealthChecks
         private static readonly JsonSerializerOptions JsonOptions = new JsonSerializerOptions
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            WriteIndented = true
+            WriteIndented = true,
+            Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) }
         };
 
         public static IApplicationBuilder UseMonivusHealthChecks(this IApplicationBuilder app, string path = "/health")
@@ -66,7 +68,8 @@ namespace Monivus.HealthChecks
                         d => d.Key,
                         d => d.Value is Exception ex ? ex.Message : d.Value),
                     Exception = source.Exception?.GetType().FullName,
-                    Tags = source.Tags
+                    Tags = source.Tags,
+                    EntryType = InferEntryType(source.Tags)
                 };
 
                 entryResults[entry.Key] = responseEntry;
@@ -125,7 +128,8 @@ namespace Monivus.HealthChecks
                     Duration = source.Duration,
                     Data = source.Data?.ToDictionary(d => d.Key, d => d.Value is Exception ex ? ex.Message : d.Value),
                     Exception = source.Exception?.GetType().FullName,
-                    Tags = source.Tags
+                    Tags = source.Tags,
+                    EntryType = InferEntryType(source.Tags)
                 };
             }
 
@@ -163,7 +167,11 @@ namespace Monivus.HealthChecks
                                 finalKey = $"{key}#{i++}";
                             }
 
-                            mergedEntries[finalKey] = kvp.Value;
+                            // Ensure entry type is set if missing/unknown
+                            var remoteEntry = kvp.Value;
+
+                            remoteEntry.EntryType = InferEntryType(remoteEntry.Tags);
+                            mergedEntries[finalKey] = remoteEntry;
                         }
                     }
 
@@ -206,7 +214,8 @@ namespace Monivus.HealthChecks
                             Duration = res.Duration,
                             Data = summaryData,
                             Exception = res.Error?.GetType().FullName,
-                            Tags = []
+                            Tags = [],
+                            EntryType = "Service"
                         };
                     }
                 }
@@ -269,6 +278,15 @@ namespace Monivus.HealthChecks
             }
 
             return new RemoteFetchResult(report, status, duration, error);
+        }
+
+        private static string InferEntryType(IEnumerable<string>? tags)
+        {
+            var firstTag = tags?.FirstOrDefault()?.Trim();
+
+            if (!string.IsNullOrEmpty(firstTag)) return firstTag;
+
+            return "Unknown";
         }
 
         private sealed record RemoteFetchResult(

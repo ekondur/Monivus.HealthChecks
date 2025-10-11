@@ -39,7 +39,7 @@ namespace Monivus.HealthChecks.SqlServer
                     return new SqlServerHealthCheck(options);
                 },
                 failureStatus,
-                tags,
+                PrependTypeTag("SqlServer", tags),
                 timeout));
         }
 
@@ -76,8 +76,15 @@ namespace Monivus.HealthChecks.SqlServer
                     return new SqlServerHealthCheck(options);
                 },
                 failureStatus,
-                tags,
+                PrependTypeTag("SqlServer", tags),
                 timeout));
+        }
+
+        private static IEnumerable<string> PrependTypeTag(string code, IEnumerable<string>? tags)
+        {
+            yield return code.ToString();
+            if (tags is null) yield break;
+            foreach (var t in tags) yield return t;
         }
 
         private static string ResolveConnectionString(IServiceProvider sp, string connectionStringOrName)

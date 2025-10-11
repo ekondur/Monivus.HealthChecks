@@ -50,9 +50,15 @@ namespace Monivus.HealthChecks.Hangfire
                     }
                 },
                 failureStatus,
-                tags,
+                PrependTypeTag("Hangfire", tags),
                 timeout));
+        }
+
+        private static IEnumerable<string> PrependTypeTag(string code, IEnumerable<string>? tags)
+        {
+            yield return code.ToString();
+            if (tags is null) yield break;
+            foreach (var t in tags) yield return t;
         }
     }
 }
-
