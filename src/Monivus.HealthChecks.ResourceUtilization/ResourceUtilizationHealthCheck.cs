@@ -117,7 +117,7 @@ namespace Monivus.HealthChecks
 
     public class ResourceUtilizationHealthCheckOptions
     {
-        public double MemoryUsageDegradedThresholdPercent { get; set; } = 90;
-        public double CpuUsageDegradedThresholdPercent { get; set; } = 90;
+        public double MemoryUsageDegradedThresholdPercent { get; set; } = 75;
+        public double CpuUsageDegradedThresholdPercent { get; set; } = 70;
     }
 }

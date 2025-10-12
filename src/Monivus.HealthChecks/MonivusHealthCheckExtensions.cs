@@ -11,11 +11,11 @@ namespace Monivus.HealthChecks
 {
     public static class MonivusHealthCheckExtensions
     {
-        private static readonly JsonSerializerOptions JsonOptions = new JsonSerializerOptions
+        private static readonly JsonSerializerOptions JsonOptions = new()
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             WriteIndented = true,
-            Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) }
+            Converters = { new JsonStringEnumConverter() }
         };
 
         public static IApplicationBuilder UseMonivusHealthChecks(this IApplicationBuilder app, string path = "/health")
@@ -48,7 +48,7 @@ namespace Monivus.HealthChecks
 
         private static Task WriteMonivusHealthResponse(HttpContext context, HealthReport report)
         {
-            var entryResults = new Dictionary<string, HealthCheckEntry>(report.Entries.Count, System.StringComparer.OrdinalIgnoreCase);
+            var entryResults = new Dictionary<string, HealthCheckEntry>(report.Entries.Count, StringComparer.OrdinalIgnoreCase);
             var totalEntryDurationMs = 0d;
             var maxEntryDurationMs = 0d;
             var healthyCount = 0;
@@ -61,7 +61,7 @@ namespace Monivus.HealthChecks
                 var source = entry.Value;
                 var responseEntry = new HealthCheckEntry
                 {
-                    Status = source.Status.ToString(),
+                    Status = source.Status,
                     Description = source.Description,
                     Duration = source.Duration,
                     Data = source.Data?.ToDictionary(
@@ -100,7 +100,7 @@ namespace Monivus.HealthChecks
 
             var response = new HealthCheckReport
             {
-                Status = report.Status.ToString(),
+                Status = report.Status,
                 Timestamp = DateTime.UtcNow,
                 Duration = report.TotalDuration,
                 TraceId = context.TraceIdentifier,
@@ -123,7 +123,7 @@ namespace Monivus.HealthChecks
                 var source = entry.Value;
                 mergedEntries[entry.Key] = new HealthCheckEntry
                 {
-                    Status = source.Status.ToString(),
+                    Status = source.Status,
                     Description = source.Description,
                     Duration = source.Duration,
                     Data = source.Data?.ToDictionary(d => d.Key, d => d.Value is Exception ex ? ex.Message : d.Value),
@@ -182,12 +182,12 @@ namespace Monivus.HealthChecks
                             ["StatusCode"] = res.StatusCode,
                         };
 
-                        var summaryStatus = "Unknown";
+                        HealthStatus summaryStatus = HealthStatus.Healthy;
                         string? summaryDescription = null;
 
                         if (res.Error != null)
                         {
-                            summaryStatus = "Unhealthy";
+                            summaryStatus = HealthStatus.Unhealthy;
                             summaryDescription = res.Error.Message;
                         }
                         else if (res.Report is not null)
@@ -196,7 +196,7 @@ namespace Monivus.HealthChecks
                         }
                         else if (res.StatusCode != 0)
                         {
-                            summaryStatus = res.StatusCode is >= 200 and < 300 ? "Healthy" : "Unhealthy";
+                            summaryStatus = res.StatusCode is >= 200 and < 300 ? HealthStatus.Healthy : HealthStatus.Unhealthy;
                         }
 
                         var summaryKey = prefix;
@@ -223,7 +223,7 @@ namespace Monivus.HealthChecks
 
             var response = new HealthCheckReport
             {
-                Status = localReport.Status.ToString(),
+                Status = localReport.Status,
                 Timestamp = DateTime.UtcNow,
                 Duration = localReport.TotalDuration,
                 TraceId = context.TraceIdentifier,
@@ -261,11 +261,7 @@ namespace Monivus.HealthChecks
                 await using var s = await resp.Content.ReadAsStreamAsync(ct);
                 try
                 {
-                    report = await JsonSerializer.DeserializeAsync<HealthCheckReport>(s, new JsonSerializerOptions
-                    {
-                        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                        PropertyNameCaseInsensitive = true
-                    }, ct);
+                    report = await JsonSerializer.DeserializeAsync<HealthCheckReport>(s, JsonOptions, ct);
                 }
                 catch (JsonException ex)
                 {

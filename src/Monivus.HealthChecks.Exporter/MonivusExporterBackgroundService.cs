@@ -19,7 +19,8 @@ namespace Monivus.HealthChecks.Exporter
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             PropertyNameCaseInsensitive = true,
-            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+            Converters = { new JsonStringEnumConverter() }
         };
 
         private readonly IHttpClientFactory _httpClientFactory = httpClientFactory;

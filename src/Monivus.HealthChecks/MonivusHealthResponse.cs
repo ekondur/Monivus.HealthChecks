@@ -1,8 +1,10 @@
-﻿namespace Monivus.HealthChecks
+﻿using Microsoft.Extensions.Diagnostics.HealthChecks;
+
+namespace Monivus.HealthChecks
 {
     public class HealthCheckReport
     {
-        public string Status { get; set; } = string.Empty;
+        public HealthStatus Status { get; set; }
         public DateTime Timestamp { get; set; }
         public TimeSpan Duration { get; set; }
         public double DurationMs => Math.Round(Duration.TotalMilliseconds, 3);
@@ -12,7 +14,7 @@
 
     public class HealthCheckEntry
     {
-        public string Status { get; set; } = string.Empty;
+        public HealthStatus Status { get; set; }
         public string? Description { get; set; }
         public TimeSpan Duration { get; set; }
         public double DurationMs => Math.Round(Duration.TotalMilliseconds, 3);
