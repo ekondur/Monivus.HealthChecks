@@ -5,7 +5,6 @@ namespace Monivus.HealthChecks
 {
     public sealed class ResourceUtilizationHealthCheck : IHealthCheck
     {
-
         private readonly ResourceUtilizationHealthCheckOptions _options;
 
         public ResourceUtilizationHealthCheck(ResourceUtilizationHealthCheckOptions options)
@@ -28,7 +27,6 @@ namespace Monivus.HealthChecks
             var gcInfo = GC.GetGCMemoryInfo();
             var totalAllocatedBytes = GC.GetTotalAllocatedBytes();
             var cpuUsagePercent = CalculateCpuUsagePercent(process, sampleTimeUtc);
-            var normalizedCpuUsage = Math.Round(Math.Clamp(cpuUsagePercent, 0, 100), 2);
             var memoryUsagePercent = CalculateMemoryUsagePercent(gcInfo);
 
             var metrics = new Dictionary<string, object>
@@ -43,7 +41,8 @@ namespace Monivus.HealthChecks
                 ["FrameworkDescription"] = System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription,
                 ["UptimeSeconds"] = Math.Round(uptime.TotalSeconds, 2),
                 ["TotalProcessorTimeSeconds"] = Math.Round(process.TotalProcessorTime.TotalSeconds, 2),
-                ["CpuUsagePercent"] = normalizedCpuUsage,
+                ["CpuUsagePercent"] = cpuUsagePercent,
+                ["MemoryUsagePercent"] = memoryUsagePercent,
                 ["WorkingSetBytes"] = process.WorkingSet64,
                 ["WorkingSetMegabytes"] = Math.Round(process.WorkingSet64 / 1024d / 1024d, 2),
                 ["PrivateMemoryBytes"] = process.PrivateMemorySize64,
@@ -68,11 +67,6 @@ namespace Monivus.HealthChecks
                 ["TimestampUtc"] = sampleTimeUtc.ToString("o")
             };
 
-            if (memoryUsagePercent.HasValue)
-            {
-                metrics["MemoryUsagePercent"] = Math.Round(Math.Clamp(memoryUsagePercent.Value, 0, 100), 2);
-            }
-
             if (gcInfo.Generation >= 0)
             {
                 metrics["GcGeneration"] = gcInfo.Generation;
@@ -86,16 +80,15 @@ namespace Monivus.HealthChecks
             var status = HealthStatus.Healthy;
             var description = "Resource utilization within defined thresholds.";
 
-            if (memoryUsagePercent.HasValue &&
-                memoryUsagePercent.Value >= _options.MemoryUsageDegradedThresholdPercent)
+            if (memoryUsagePercent >= _options.MemoryUsageDegradedThresholdPercent)
             {
                 status = HealthStatus.Degraded;
-                description = $"Process memory usage {Math.Round(memoryUsagePercent.Value, 2)}% exceeds {_options.MemoryUsageDegradedThresholdPercent}% threshold.";
+                description = $"Process memory usage {Math.Round(memoryUsagePercent, 2)}% exceeds {_options.MemoryUsageDegradedThresholdPercent}% threshold.";
             }
-            else if (normalizedCpuUsage >= _options.CpuUsageDegradedThresholdPercent)
+            else if (cpuUsagePercent >= _options.CpuUsageDegradedThresholdPercent)
             {
                 status = HealthStatus.Degraded;
-                description = $"Process CPU usage {normalizedCpuUsage}% exceeds {_options.CpuUsageDegradedThresholdPercent}% threshold.";
+                description = $"Process CPU usage {cpuUsagePercent}% exceeds {_options.CpuUsageDegradedThresholdPercent}% threshold.";
             }
 
             return Task.FromResult(new HealthCheckResult(
@@ -109,14 +102,16 @@ namespace Monivus.HealthChecks
         {
             var totalCpuMs = process.TotalProcessorTime.TotalMilliseconds;
             var uptimeMs = Math.Max((sampleTimeUtc - process.StartTime.ToUniversalTime()).TotalMilliseconds, 1);
-            return totalCpuMs / (Environment.ProcessorCount * uptimeMs) * 100;
+            var cpuUsage =  totalCpuMs / (Environment.ProcessorCount * uptimeMs) * 100;
+            return Math.Round(Math.Clamp(cpuUsage, 0, 100), 2);
         }
 
-        private static double? CalculateMemoryUsagePercent(GCMemoryInfo gcInfo)
+        private static double CalculateMemoryUsagePercent(GCMemoryInfo gcInfo)
         {
-            return gcInfo.TotalAvailableMemoryBytes > 0
-                ? gcInfo.MemoryLoadBytes / (double)gcInfo.TotalAvailableMemoryBytes * 100
-                : null;
+            var memoryUsage =  gcInfo.TotalAvailableMemoryBytes > 0
+                ? gcInfo.MemoryLoadBytes / (double)gcInfo.TotalAvailableMemoryBytes * 100 : 0;
+
+            return Math.Round(Math.Clamp(memoryUsage, 0, 100), 2);
         }
     }
 
