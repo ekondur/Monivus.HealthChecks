@@ -1,5 +1,4 @@
 using Hangfire.Storage;
-using Hangfire.Storage.Monitoring;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace Monivus.HealthChecks.Hangfire
@@ -33,25 +32,26 @@ namespace Monivus.HealthChecks.Hangfire
                     return Task.FromResult(HealthCheckResult.Unhealthy("Hangfire storage connection failed"));
                 }
 
-                var failedJobs = stats.Failed;
-                if (failedJobs > 0 && _options.DegradeOnFailedJobs)
+                if (_options.MaxFailedJobs > 0 && stats.Failed > _options.MaxFailedJobs)
                 {
                     return Task.FromResult(HealthCheckResult.Degraded(
-                        $"Hangfire is running but has {failedJobs} failed job(s)",
-                        data: new Dictionary<string, object> { ["FailedJobs"] = failedJobs }));
+                        $"Hangfire is running but has {stats.Failed} failed job(s), expected max {_options.MaxFailedJobs}."));
+                }
+
+                if (_options.MaxEnqueuedJobs > 0 && stats.Enqueued > _options.MaxEnqueuedJobs)
+                {
+                    return Task.FromResult(HealthCheckResult.Degraded(
+                        $"Hangfire is running but has {stats.Enqueued} enqueued job(s), expected max {_options.MaxEnqueuedJobs}."));
                 }
 
                 var now = DateTime.UtcNow;
-                var heartbeatWindow = _options.HeartbeatWindow;
-                var activeServers = servers.Count(s => s.Heartbeat.HasValue &&
-                    (now - s.Heartbeat.Value).TotalMinutes < heartbeatWindow.TotalMinutes);
+                var serverCount = servers.Count;
 
-                if (activeServers < _options.MinActiveServers)
+                if (serverCount < _options.MinServers)
                 {
-                    return Task.FromResult(HealthCheckResult.Unhealthy("Insufficient active Hangfire servers detected"));
+                    return Task.FromResult(HealthCheckResult.Degraded(
+                        $"Hangfire has {serverCount} registered servers, but at least {_options.MinServers} are expected."));
                 }
-
-                // Queues and per-queue metrics intentionally not collected for performance.
 
                 var lastHeartbeat = servers
                     .Where(s => s.Heartbeat.HasValue)
@@ -61,29 +61,20 @@ namespace Monivus.HealthChecks.Hangfire
 
                 var healthData = new Dictionary<string, object>
                 {
-                    ["ActiveServers"] = activeServers,
-                    ["TotalServers"] = servers.Count,
-                    ["ServersWithoutRecentHeartbeat"] = servers.Count - activeServers,
+                    ["TotalServers"] = serverCount,
                     ["SucceededJobs"] = stats.Succeeded,
                     ["FailedJobs"] = stats.Failed,
                     ["ProcessingJobs"] = stats.Processing,
                     ["ScheduledJobs"] = stats.Scheduled,
-                    ["TotalEnqueuedJobs"] = stats.Enqueued,
+                    ["EnqueuedJobs"] = stats.Enqueued,
                     ["DeletedJobs"] = stats.Deleted,
                     ["RecurringJobs"] = stats.Recurring,
                 };
 
                 if (lastHeartbeat != DateTime.MinValue)
                 {
-                    healthData["LastServerHeartbeatUtc"] = lastHeartbeat.ToString("o");
+                    healthData["LastServerHeartbeat"] = lastHeartbeat.ToString("o");
                 }
-
-                if (_options.IncludeDefaultQueueDepth)
-                {
-                    healthData["DefaultQueueDepth"] = _monitoringApi.EnqueuedCount("default");
-                }
-
-                // Removed "Queues" and "QueuesCount" metrics per performance requirement.
 
                 return Task.FromResult(HealthCheckResult.Healthy(
                     "Hangfire is healthy and running",
