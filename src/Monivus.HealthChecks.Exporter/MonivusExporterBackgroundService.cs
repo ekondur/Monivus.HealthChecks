@@ -26,6 +26,12 @@ namespace Monivus.HealthChecks.Exporter
         private readonly IHttpClientFactory _httpClientFactory = httpClientFactory;
         private readonly ILogger<MonivusExporterBackgroundService> _logger = logger;
         private readonly IOptionsMonitor<MonivusExporterOptions> _optionsMonitor = optionsMonitor;
+        private int _unauthorizedCount = 0;
+
+        private sealed class UnauthorizedThresholdExceededException : Exception
+        {
+            public UnauthorizedThresholdExceededException(string message) : base(message) { }
+        }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
@@ -66,6 +72,11 @@ namespace Monivus.HealthChecks.Exporter
                         {
                             await SendReportAsync(centralUri, report, options, stoppingToken);
                         }
+                    }
+                    catch (UnauthorizedThresholdExceededException ex)
+                    {
+                        _logger.LogError(ex, "Stopping exporter due to repeated unauthorized responses.");
+                        break;
                     }
                     catch (TaskCanceledException) when (stoppingToken.IsCancellationRequested)
                     {
@@ -158,7 +169,29 @@ namespace Monivus.HealthChecks.Exporter
                 using var response = await client.SendAsync(request, stoppingToken);
                 if (!response.IsSuccessStatusCode)
                 {
-                    _logger.LogWarning("Exporter received status {StatusCode} from {Endpoint}", (int)response.StatusCode, destination);
+                    if (response.StatusCode == HttpStatusCode.Unauthorized)
+                    {
+                        _unauthorizedCount++;
+                        _logger.LogWarning(
+                            "Exporter received unauthorized (401) from {Endpoint}. Count: {Count}/20",
+                            destination, _unauthorizedCount);
+                        if (_unauthorizedCount >= 20)
+                        {
+                            throw new UnauthorizedThresholdExceededException(
+                                "Exceeded 20 unauthorized responses while exporting health data.");
+                        }
+                    }
+                    else
+                    {
+                        _logger.LogWarning("Exporter received status {StatusCode} from {Endpoint}", (int)response.StatusCode, destination);
+                    }
+                }
+                else
+                {
+                    if (_unauthorizedCount != 0)
+                    {
+                        _unauthorizedCount = 0;
+                    }
                 }
             }
             catch (HttpRequestException ex)
