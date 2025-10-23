@@ -39,17 +39,11 @@ namespace Monivus.HealthChecks.SqlServer
                 {
                     var data = new Dictionary<string, object>
                     {
-                        { "DataSource", connection.DataSource },
-                        { "Database", connection.Database },
                         { "ConnectionTimeout", connection.ConnectionTimeout },
                         { "State", connection.State },
-                        { "ServerVersion", connection.ServerVersion },
-                        { "WorkstationId", connection.WorkstationId },
-                        { "ClientConnectionId", connection.ClientConnectionId.ToString() },
                         { "CommandTimeoutSeconds", command.CommandTimeout },
-                        { "ConnectionOpenMilliseconds", System.Math.Round(openWatch.Elapsed.TotalMilliseconds, 2) },
-                        { "QueryDurationMilliseconds", System.Math.Round(queryWatch.Elapsed.TotalMilliseconds, 2) },
-                        { "TestQueryResult", result?.ToString() ?? string.Empty }
+                        { "ConnectionOpenMilliseconds", Math.Round(openWatch.Elapsed.TotalMilliseconds, 2) },
+                        { "QueryDurationMilliseconds", Math.Round(queryWatch.Elapsed.TotalMilliseconds, 2) },
                     };
 
                     return HealthCheckResult.Healthy(null, data);
@@ -60,8 +54,8 @@ namespace Monivus.HealthChecks.SqlServer
                     null,
                     new Dictionary<string, object>
                     {
-                        { "ConnectionOpenMilliseconds", System.Math.Round(openWatch.Elapsed.TotalMilliseconds, 2) },
-                        { "QueryDurationMilliseconds", System.Math.Round(queryWatch.Elapsed.TotalMilliseconds, 2) },
+                        { "ConnectionOpenMilliseconds", Math.Round(openWatch.Elapsed.TotalMilliseconds, 2) },
+                        { "QueryDurationMilliseconds", Math.Round(queryWatch.Elapsed.TotalMilliseconds, 2) },
                         { "TestQueryResult", result?.ToString() ?? string.Empty }
                     });
             }
