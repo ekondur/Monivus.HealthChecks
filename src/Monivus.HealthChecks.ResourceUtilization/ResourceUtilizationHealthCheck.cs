@@ -31,14 +31,9 @@ namespace Monivus.HealthChecks
 
             var metrics = new Dictionary<string, object>
             {
-                ["ProcessId"] = process.Id,
                 ["ProcessName"] = process.ProcessName,
-                ["MachineName"] = Environment.MachineName,
                 ["Is64BitProcess"] = Environment.Is64BitProcess,
                 ["ProcessorCount"] = Environment.ProcessorCount,
-                ["OsDescription"] = System.Runtime.InteropServices.RuntimeInformation.OSDescription,
-                ["ProcessArchitecture"] = System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture.ToString(),
-                ["FrameworkDescription"] = System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription,
                 ["UptimeSeconds"] = Math.Round(uptime.TotalSeconds, 2),
                 ["TotalProcessorTimeSeconds"] = Math.Round(process.TotalProcessorTime.TotalSeconds, 2),
                 ["CpuUsagePercent"] = cpuUsagePercent,
